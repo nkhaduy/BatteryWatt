@@ -5,8 +5,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let loginItemController = LoginItemController()
     private var statusItem: NSStatusItem?
     private var menuController: StatusMenuController?
-    private var statusItemView: WhiteStatusItemView?
-    private var lastMenuBarTitle = ""
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -37,23 +35,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let button = statusItem.button else { return }
         let font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
         button.font = font
-        // Keep the native status button/cell for menu handling, while the
-        // overlay owns the exact monochrome rendering.
-        button.image = NSImage(size: NSSize(width: 14, height: 14))
+        let boltImage = NSImage(
+            systemSymbolName: "bolt.fill",
+            accessibilityDescription: "BatteryWatt"
+        )
+        boltImage?.isTemplate = true
+        button.image = boltImage
         button.imagePosition = .imageLeading
         button.imageScaling = .scaleProportionallyDown
-        button.contentTintColor = .white
-        button.appearance = NSAppearance(named: .darkAqua)
-        let statusItemView = WhiteStatusItemView(font: font)
-        statusItemView.translatesAutoresizingMaskIntoConstraints = false
-        button.addSubview(statusItemView)
-        NSLayoutConstraint.activate([
-            statusItemView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-            statusItemView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
-            statusItemView.topAnchor.constraint(equalTo: button.topAnchor),
-            statusItemView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
-        ])
-        self.statusItemView = statusItemView
+        button.title = "-- W"
         button.toolTip = "BatteryWatt"
         button.setAccessibilityLabel("BatteryWatt power")
         button.setAccessibilityRole(.button)
@@ -78,22 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let title = snapshot.menuBarPowerText
         guard let button = statusItem?.button else { return }
-        button.contentTintColor = .white
-        button.appearance = NSAppearance(named: .darkAqua)
-        statusItemView?.title = title
-
-        if title != lastMenuBarTitle {
-            // The native cell keeps the status item width variable, but its
-            // text is transparent so the overlay can draw the white title.
-            button.attributedTitle = NSAttributedString(
-                string: title,
-                attributes: [
-                    .font: button.font ?? .monospacedDigitSystemFont(ofSize: 13, weight: .regular),
-                    .foregroundColor: NSColor.clear
-                ]
-            )
-            lastMenuBarTitle = title
-        }
+        button.title = title
 
         button.toolTip = "BatteryWatt — \(snapshot.precisePowerText)"
         menuController?.update(with: snapshot)
