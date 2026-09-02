@@ -1,16 +1,38 @@
 # BatteryWatt
 
-See how much power is flowing into or out of your MacBook battery - live in the menu bar.
+Real-time MacBook battery power, right in your menu bar.
 
 <p align="center">
-  <img src="assets/batterywatt-social-preview.svg" alt="BatteryWatt: real-time MacBook battery power in the menu bar" width="720">
+  <img src="docs/assets/hero.png" alt="BatteryWatt showing 6.5 W of real battery-side discharge power in the menu bar" width="420">
 </p>
 
-BatteryWatt is a small native macOS utility for seeing battery-side power at a glance. It supports charging and discharging readings, stays out of the way when there is no useful reading, and keeps everything on the Mac.
+<p align="center"><strong>Native macOS - Charging and discharging - 100% local</strong></p>
 
-> **Media note:** the repository only publishes screenshots and recordings captured from the installed app. A live wattage capture requires a MacBook in an active power state; it is not replaced with a mockup.
+The hero above is a real installed Release capture during battery discharge. BatteryWatt reads the power flowing into or out of your MacBook battery and keeps the result on your Mac.
 
-## Why BatteryWatt?
+<p align="center">
+  <a href="https://github.com/nkhaduy/BatteryWatt/releases"><img src="https://img.shields.io/github/v/release/nkhaduy/BatteryWatt?display_name=tag&sort=semver" alt="Latest release"></a>
+  <a href="https://github.com/nkhaduy/BatteryWatt/actions/workflows/ci.yml"><img src="https://github.com/nkhaduy/BatteryWatt/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/nkhaduy/BatteryWatt" alt="MIT License"></a>
+</p>
+
+## Install
+
+### Homebrew
+
+```sh
+brew install --cask nkhaduy/batterywatt/batterywatt
+```
+
+### DMG
+
+Download `BatteryWatt-1.0.0.dmg` from the [GitHub Releases](https://github.com/nkhaduy/BatteryWatt/releases) page, open it, and drag BatteryWatt to Applications. The release also includes a SHA-256 checksum file.
+
+The initial public build is ad-hoc signed and not notarized because a Developer ID identity is not available in the build environment. macOS may require opening it from Finder with Control-click -> Open the first time. Future signed releases will remove that step.
+
+To uninstall, turn off **Launch at Login**, quit BatteryWatt, and remove `BatteryWatt.app` from Applications. Preferences and optional history can be removed separately from `~/Library/Application Support/BatteryWatt`.
+
+## What it does
 
 The macOS battery percentage tells you how full the battery is. BatteryWatt shows what the battery is doing right now:
 
@@ -23,29 +45,7 @@ The macOS battery percentage tells you how full the battery is. BatteryWatt show
 
 BatteryWatt is deliberately focused on battery power. It is not a CPU, GPU, RAM, disk, fan, or network monitor, and it is designed to sit comfortably beside utilities like Stats without pretending to integrate with them.
 
-## Installation
-
-### Homebrew
-
-```sh
-brew tap nkhaduy/batterywatt && brew install --cask batterywatt
-```
-
-### DMG
-
-Download `BatteryWatt-1.0.0.dmg` from the [GitHub Releases](https://github.com/nkhaduy/BatteryWatt/releases) page, open it, and drag BatteryWatt to Applications. The release also includes a SHA-256 checksum file.
-
-The initial public build is ad-hoc signed and not notarized because a Developer ID identity is not available in the build environment. macOS may require opening it from Finder with Control-click -> Open the first time. Future signed releases will remove that step.
-
-To uninstall, turn off **Launch at Login**, quit BatteryWatt, and remove `BatteryWatt.app` from Applications. Preferences and optional history can be removed separately from `~/Library/Application Support/BatteryWatt`.
-
-### Optional npm helper
-
-BatteryWatt is a native app, not an npm application. A dependency-free helper is prepared under [`npm/`](npm/) for developers who prefer a CLI installer. It downloads only official GitHub Release assets, verifies `SHA256SUMS.txt`, and requires an explicit `install` command.
-
-The helper is not published to npm yet, so it is not presented as a live installation channel for this release. There is no `postinstall` script, and `npm install` never installs or launches the app. The helper is intentionally secondary to Homebrew and the official DMG.
-
-## How it works
+## Battery-side power
 
 BatteryWatt reads AppleSmartBattery telemetry through IOKit and calculates battery-side power as:
 
@@ -59,7 +59,7 @@ Charging power is power flowing into the battery. Discharging power is approxima
 
 For example, a 65 W adapter can supply the Mac, the display, and the battery at the same time. BatteryWatt may show about 56 W because that is the portion measured entering the battery.
 
-## Settings
+## Settings and history
 
 BatteryWatt defaults to **Charging only** so existing users do not suddenly get a new always-visible status item after an update.
 
@@ -75,7 +75,7 @@ History is disabled by default. When enabled, BatteryWatt stores samples locally
 
 ![BatteryWatt Settings](docs/assets/settings.png)
 
-The settings capture above is from the installed Release build. Live menu-bar wattage captures are added only when a MacBook is in an active charging or discharging state.
+The settings capture above is from the installed Release build. History is opt-in and stays local.
 
 ## Privacy
 
@@ -99,6 +99,12 @@ See [PRIVACY.md](PRIVACY.md) for the short privacy statement.
 - Desktop Macs without an AppleSmartBattery service remain hidden and do not crash
 - Readings describe battery-side power, not laboratory-grade adapter or system power
 
+## Optional npm helper
+
+BatteryWatt is a native app, not an npm application. A dependency-free helper is prepared under [`npm/`](npm/) for developers who prefer a CLI installer. It downloads only official GitHub Release assets, verifies `SHA256SUMS.txt`, and requires an explicit `install` command.
+
+The helper is not published to npm yet, so it is not presented as a live installation channel for this release. There is no `postinstall` script, and `npm install` never installs or launches the app. Homebrew and the official DMG remain the recommended paths.
+
 ## Building from source
 
 Xcode is not required for the command-line build used by this repository, although the macOS Command Line Tools are. From the repository root:
@@ -116,10 +122,6 @@ The small Foundation-only domain layer is described in [docs/ARCHITECTURE.md](do
 
 ## FAQ
 
-### Does `19.8 W` mean my charger draws 19.8 W?
-
-No. It is the approximate power entering the battery at that instant. The Mac may be using additional power for the screen, processor, storage, and connected devices.
-
 ### Does it work while unplugged?
 
 Yes. Choose **Always** or **On battery only**. Discharging power is shown as a positive magnitude by default; Direction and Signed styles can make direction explicit.
@@ -127,10 +129,6 @@ Yes. Choose **Always** or **On battery only**. Discharging power is shown as a p
 ### Does it run in the Dock?
 
 No. BatteryWatt is an accessory/menu-bar app and sets `LSUIElement` so it has no Dock icon.
-
-### Does history leave my Mac?
-
-No. History is local-only and opt-in. Export is a user-initiated CSV save.
 
 ### Why is the number different from a power meter at the wall?
 

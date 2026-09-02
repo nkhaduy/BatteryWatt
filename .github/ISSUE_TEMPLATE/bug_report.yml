@@ -19,7 +19,14 @@ body:
     id: mac
     attributes:
       label: Mac model
-      placeholder: MacBook Pro (Apple silicon)
+      placeholder: MacBook Pro 14-inch (M3 Pro)
+    validations:
+      required: true
+  - type: input
+    id: chip
+    attributes:
+      label: Chip
+      placeholder: Apple M3 Pro or Intel Core i7
     validations:
       required: true
   - type: input
