@@ -37,7 +37,7 @@ Download `BatteryWatt-1.0.0.dmg` from the [GitHub Releases](https://github.com/n
 
 The initial public build is ad-hoc signed and not notarized because a Developer ID identity is not available in the build environment. macOS may require opening it from Finder with Control-click -> Open the first time. Future signed releases will remove that step.
 
-To uninstall, quit BatteryWatt and remove `BatteryWatt.app` from Applications. Launch at Login is disabled automatically when the app is removed; preferences and optional history can be removed separately from `~/Library/Application Support/BatteryWatt`.
+To uninstall, turn off **Launch at Login**, quit BatteryWatt, and remove `BatteryWatt.app` from Applications. Preferences and optional history can be removed separately from `~/Library/Application Support/BatteryWatt`.
 
 ### Optional npm helper
 
