@@ -67,6 +67,9 @@ final class BatterySnapshotTests: XCTestCase {
 
         XCTAssertEqual(PowerFormatter.powerText(7.2, direction: .discharging, preferences: direction), "↓ 7.2W")
         XCTAssertEqual(PowerFormatter.powerText(7.2, direction: .discharging, preferences: signed), "-7.2 W")
+
+        let adapterConnected = BatteryWattPreferences.defaults.with(directionStyle: .signed)
+        XCTAssertEqual(PowerFormatter.powerText(7.2, direction: .unknown, preferences: adapterConnected), "7.2 W")
     }
 
     private func makeSnapshot(externalConnected: Bool, isCharging: Bool) -> BatterySnapshot {
@@ -150,6 +153,9 @@ struct BatterySnapshotTests {
 
         #expect(PowerFormatter.powerText(7.2, direction: .discharging, preferences: direction) == "↓ 7.2W")
         #expect(PowerFormatter.powerText(7.2, direction: .discharging, preferences: signed) == "-7.2 W")
+
+        let adapterConnected = BatteryWattPreferences.defaults.with(directionStyle: .signed)
+        #expect(PowerFormatter.powerText(7.2, direction: .unknown, preferences: adapterConnected) == "7.2 W")
     }
 
     private func makeSnapshot(externalConnected: Bool, isCharging: Bool) -> BatterySnapshot {

@@ -36,11 +36,19 @@ jobs:
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
+          CODESIGN_IDENTITY: ${{ secrets.BATTERYWATT_CODESIGN_IDENTITY }}
         run: |
           version="${GITHUB_REF_NAME#v}"
+          if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
+            release_notes="Developer ID signing was enabled for this build. Notarization is not performed by this workflow."
+          else
+            release_notes="This build is ad-hoc signed and not notarized because no Developer ID identity was configured."
+          fi
           gh release create "$GITHUB_REF_NAME" \
             --title "BatteryWatt $version" \
             --generate-notes \
+            --notes "$release_notes" \
+            --verify-tag \
             dist/BatteryWatt-"$version".dmg \
             dist/BatteryWatt-"$version".zip \
             dist/SHA256SUMS.txt

@@ -194,7 +194,14 @@ public enum PowerFormatter {
                 signedNumber = number
             }
         case .signed:
-            signedNumber = direction == .discharging ? "-\(number)" : "+\(number)"
+            switch direction {
+            case .charging:
+                signedNumber = "+\(number)"
+            case .discharging:
+                signedNumber = "-\(number)"
+            case .unknown:
+                signedNumber = number
+            }
         }
 
         return signedNumber + (preferences.showSpaceBeforeUnit ? " W" : "W")
