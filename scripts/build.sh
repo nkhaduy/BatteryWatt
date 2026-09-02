@@ -48,6 +48,12 @@ plutil -replace CFBundleVersion -string "${BUILD_NUMBER:-1}" "$APP_PATH/Contents
 "$BUILD_DIR/render-icon" "$BUILD_DIR/AppIcon.iconset"
 iconutil -c icns "$BUILD_DIR/AppIcon.iconset" -o "$APP_PATH/Contents/Resources/AppIcon.icns"
 
-codesign --force --deep --sign - "$APP_PATH" >/dev/null
+if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
+    codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" "$APP_PATH" >/dev/null
+else
+    codesign --force --deep --sign - "$APP_PATH" >/dev/null
+fi
+
+codesign --verify --deep --strict "$APP_PATH"
 
 echo "$APP_PATH"

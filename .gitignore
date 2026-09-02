@@ -5,3 +5,8 @@ dist/
 DerivedData/
 *.xcuserstate
 .DS_Store
+.env
+.env.*
+*.p12
+*.mobileprovision
+npm/*.tgz

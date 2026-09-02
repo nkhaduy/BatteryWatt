@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a reproducible BatteryWatt problem
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please remove personal paths, serial numbers, account names, and private screenshots before posting diagnostics.
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: macOS 15.6
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Mac model
+      placeholder: MacBook Pro (Apple silicon)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BatteryWatt version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - Homebrew
+        - GitHub DMG
+        - Built from source
+        - npm helper
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Include the selected visibility mode and whether the Mac was charging or unplugged.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Use Copy Diagnostics from the app menu, then remove anything private.
+      render: text
+    validations:
+      required: false

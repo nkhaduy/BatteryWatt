@@ -6,7 +6,7 @@ cd "$ROOT_DIR"
 
 swift test
 plutil -lint Resources/Info.plist
-bash -n scripts/*.sh Scripts/build-app.sh
+bash -n scripts/*.sh
 git diff --check
 
 if command -v gitleaks >/dev/null 2>&1; then

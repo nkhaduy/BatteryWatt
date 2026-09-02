@@ -23,7 +23,7 @@ public enum RefreshInterval: Int, Codable, CaseIterable, Sendable {
     case tenSeconds = 10
 
     public var seconds: TimeInterval { TimeInterval(rawValue) }
-    public var displayName: String { "(rawValue) second\(rawValue == 1 ? "" : "s")" }
+    public var displayName: String { "\(rawValue) second\(rawValue == 1 ? "" : "s")" }
 }
 
 public enum DirectionStyle: String, Codable, CaseIterable, Sendable {

@@ -119,6 +119,7 @@ final class SettingsViewController: NSViewController {
             row("Retention", retentionPopup),
             historyDescription()
         ]))
+        stack.addArrangedSubview(supportDescription())
     }
 
     private func configurePopups(_ preferences: BatteryWattPreferences) {
@@ -195,6 +196,17 @@ final class SettingsViewController: NSViewController {
 
     private func historyDescription() -> NSView {
         let label = NSTextField(labelWithString: "History stays on this Mac. Samples are batched and older data is compacted automatically.")
+        label.font = .systemFont(ofSize: 11)
+        label.textColor = .secondaryLabelColor
+        label.lineBreakMode = .byWordWrapping
+        label.maximumNumberOfLines = 0
+        label.preferredMaxLayoutWidth = 390
+        label.setAccessibilityRole(.staticText)
+        return label
+    }
+
+    private func supportDescription() -> NSView {
+        let label = NSTextField(labelWithString: "BatteryWatt is designed for MacBook models with an internal battery. On a desktop Mac, it stays hidden when no AppleSmartBattery service is available.")
         label.font = .systemFont(ofSize: 11)
         label.textColor = .secondaryLabelColor
         label.lineBreakMode = .byWordWrapping

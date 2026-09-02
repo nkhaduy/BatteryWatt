@@ -17,6 +17,11 @@ struct BatteryPreferencesTests {
         #expect(!preferences.recordHistory)
     }
 
+    @Test func refreshIntervalLabelsUseTheirActualValue() {
+        #expect(RefreshInterval.oneSecond.displayName == "1 second")
+        #expect(RefreshInterval.tenSeconds.displayName == "10 seconds")
+    }
+
     @Test func preferencesRoundTripThroughUserDefaults() {
         let defaults = UserDefaults(suiteName: "BatteryWattCoreTests")!
         defaults.removePersistentDomain(forName: "BatteryWattCoreTests")
