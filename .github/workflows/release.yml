@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to package for a non-publishing dry run
+        required: true
+        default: 1.0.0-ci
 
 permissions:
   contents: write
@@ -18,9 +24,16 @@ jobs:
       - name: Build and package release
         env:
           CODESIGN_IDENTITY: ${{ secrets.BATTERYWATT_CODESIGN_IDENTITY }}
-        run: ./scripts/release.sh "${GITHUB_REF_NAME#v}"
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="${{ inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          ./scripts/release.sh "$version"
 
       - name: Publish GitHub release
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -31,4 +44,3 @@ jobs:
             dist/BatteryWatt-"$version".dmg \
             dist/BatteryWatt-"$version".zip \
             dist/SHA256SUMS.txt
-
