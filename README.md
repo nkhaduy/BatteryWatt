@@ -77,6 +77,10 @@ BatteryWatt defaults to **Charging only** so existing users do not suddenly get 
 
 History is disabled by default. When enabled, BatteryWatt stores samples locally, batches writes, compacts older readings, tracks charging/discharging sessions, and offers a native graph and CSV export. Energy values are estimates based on integrating observed samples; sleep, wake, clock changes, and missing readings are not treated as continuous power.
 
+![BatteryWatt Settings](docs/assets/settings.png)
+
+The settings capture above is from the installed Release build. Live menu-bar wattage captures are added only when a MacBook is in an active charging or discharging state.
+
 ## Privacy
 
 BatteryWatt is 100% local:
@@ -143,4 +147,3 @@ Bug reports, telemetry fixtures, documentation improvements, and focused pull re
 ## License
 
 BatteryWatt is released under the [MIT License](LICENSE).
-

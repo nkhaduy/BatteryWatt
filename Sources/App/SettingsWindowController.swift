@@ -59,10 +59,11 @@ final class SettingsViewController: NSViewController {
         scrollView.hasVerticalScroller = true
         scrollView.autohidesScrollers = true
 
-        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 520, height: 860))
+        let contentView = FlippedView(frame: NSRect(x: 0, y: 0, width: 520, height: 860))
         let stack = NSStackView()
         stack.orientation = .vertical
         stack.alignment = .leading
+        stack.distribution = .fill
         stack.spacing = 22
         stack.edgeInsets = NSEdgeInsets(top: 26, left: 28, bottom: 28, right: 28)
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -70,8 +71,7 @@ final class SettingsViewController: NSViewController {
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor),
-            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor)
         ])
         scrollView.documentView = contentView
         view = scrollView
@@ -164,6 +164,7 @@ final class SettingsViewController: NSViewController {
         let stack = NSStackView(views: [titleLabel] + views)
         stack.orientation = .vertical
         stack.alignment = .leading
+        stack.distribution = .fill
         stack.spacing = 10
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
@@ -284,4 +285,8 @@ final class SettingsViewController: NSViewController {
               let value = HistoryRetention.allCases.first(where: { $0.displayName == title }) else { return }
         preferences.update { $0.historyRetention = value }
     }
+}
+
+private final class FlippedView: NSView {
+    override var isFlipped: Bool { true }
 }
