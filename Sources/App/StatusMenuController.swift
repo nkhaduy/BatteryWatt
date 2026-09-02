@@ -1,9 +1,13 @@
 import AppKit
+import BatteryWattCore
 
 final class StatusMenuController: NSObject, NSMenuDelegate {
     let menu = NSMenu()
 
     var onRefresh: (() -> Void)?
+    var onShowSettings: (() -> Void)?
+    var onShowHistory: (() -> Void)?
+    var onCopyDiagnostics: (() -> Void)?
 
     private let loginItemController: LoginItemController
     private let batteryView = MenuHeaderView(title: "Battery")
@@ -12,9 +16,9 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     private let currentView = MenuMetricRowView(title: "Current")
     private let statusView = MenuMetricRowView(title: "Status")
     private let adapterView = MenuMetricRowView(title: "Adapter")
-    private let refreshRateView = MenuMetricRowView(title: "Refresh rate")
+    private let noteView = MenuNoteView(text: "Battery-side power · entirely on-device")
     private lazy var loginMenuItem = NSMenuItem(
-        title: "Open at Login",
+        title: "Launch at Login",
         action: #selector(toggleLogin(_:)),
         keyEquivalent: ""
     )
@@ -25,14 +29,26 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         buildMenu()
     }
 
-    func update(with snapshot: BatterySnapshot) {
+    func update(with snapshot: BatterySnapshot, preferences: BatteryWattPreferences) {
         batteryView.value = snapshot.clampedPercentage.map { "\($0)%" } ?? "--%"
-        powerView.value = snapshot.precisePowerText
-        voltageView.value = snapshot.voltage.map { String(format: "%.3f V", Double($0) / 1_000) } ?? "-- V"
-        currentView.value = snapshot.signedCurrentAmps.map { String(format: "%.3f A", $0) } ?? "-- A"
-        statusView.value = snapshot.status.rawValue
+        if let power = snapshot.powerWatts {
+            powerView.value = PowerFormatter.powerText(
+                power,
+                direction: snapshot.direction,
+                preferences: preferences
+            )
+        } else {
+            powerView.value = "--"
+        }
+        voltageView.value = snapshot.voltageMillivolts.map { String(format: "%.3f V", Double($0) / 1_000) } ?? "-- V"
+        currentView.value = snapshot.instantAmperageMilliamps.map { String(format: "%.3f A", Double($0) / 1_000) } ?? "-- A"
+        statusView.value = snapshot.state.rawValue
         adapterView.value = snapshot.externalConnected.map { $0 ? "Connected" : "Not connected" } ?? "--"
-        refreshRateView.value = "1 second"
+
+        powerView.setValueAccessibility(snapshot.powerWatts.map {
+            PowerFormatter.powerText($0, direction: snapshot.direction, preferences: preferences)
+        } ?? "Unavailable")
+        statusView.setValueAccessibility(snapshot.state.rawValue)
     }
 
     func menuWillOpen(_ menu: NSMenu) {
@@ -50,23 +66,25 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         menu.addItem(makeViewItem(currentView))
         menu.addItem(makeViewItem(statusView))
         menu.addItem(makeViewItem(adapterView))
-        menu.addItem(makeViewItem(refreshRateView))
+        menu.addItem(makeViewItem(noteView))
         menu.addItem(.separator())
+
+        addActionItem(title: "Refresh Now", action: #selector(refresh))
+        addActionItem(title: "Settings…", action: #selector(showSettings))
+        addActionItem(title: "Power History…", action: #selector(showHistory))
 
         loginMenuItem.target = self
         menu.addItem(loginMenuItem)
 
-        let refreshItem = NSMenuItem(title: "Refresh Now", action: #selector(refresh), keyEquivalent: "")
-        refreshItem.target = self
-        menu.addItem(refreshItem)
+        addActionItem(title: "Copy Diagnostics", action: #selector(copyDiagnostics))
+        addActionItem(title: "About BatteryWatt", action: #selector(showAbout))
+        addActionItem(title: "Quit BatteryWatt", action: #selector(quit), keyEquivalent: "q")
+    }
 
-        let aboutItem = NSMenuItem(title: "About BatteryWatt", action: #selector(showAbout), keyEquivalent: "")
-        aboutItem.target = self
-        menu.addItem(aboutItem)
-
-        let quitItem = NSMenuItem(title: "Quit BatteryWatt", action: #selector(quit), keyEquivalent: "q")
-        quitItem.target = self
-        menu.addItem(quitItem)
+    private func addActionItem(title: String, action: Selector, keyEquivalent: String = "") {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
+        item.target = self
+        menu.addItem(item)
     }
 
     private func makeViewItem(_ view: NSView) -> NSMenuItem {
@@ -79,13 +97,23 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         let enabled = sender.state == .off
         if loginItemController.setEnabled(enabled) {
             sender.state = enabled ? .on : .off
-        } else {
-            sender.state = enabled ? .off : .on
         }
     }
 
     @objc private func refresh() {
         onRefresh?()
+    }
+
+    @objc private func showSettings() {
+        onShowSettings?()
+    }
+
+    @objc private func showHistory() {
+        onShowHistory?()
+    }
+
+    @objc private func copyDiagnostics() {
+        onCopyDiagnostics?()
     }
 
     @objc private func showAbout() {
@@ -115,6 +143,8 @@ private final class MenuHeaderView: NSView {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
         heightAnchor.constraint(equalToConstant: 40).isActive = true
+        setAccessibilityRole(.group)
+        setAccessibilityLabel(title)
 
         titleLabel.stringValue = title
         titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
@@ -135,28 +165,32 @@ private final class MenuHeaderView: NSView {
         ])
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { nil }
 }
 
 private final class MenuPowerView: NSView {
-    private let label = NSTextField(labelWithString: "Power")
-    private let valueLabel = NSTextField(labelWithString: "-- W")
+    private let label = NSTextField(labelWithString: "Battery-side power")
+    private let valueLabel = NSTextField(labelWithString: "--")
 
     var value: String {
         get { valueLabel.stringValue }
         set { valueLabel.stringValue = newValue }
     }
 
+    func setValueAccessibility(_ value: String) {
+        valueLabel.setAccessibilityValue(value)
+    }
+
     override var intrinsicContentSize: NSSize {
-        NSSize(width: 280, height: 42)
+        NSSize(width: 280, height: 48)
     }
 
     init() {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
-        heightAnchor.constraint(equalToConstant: 42).isActive = true
+        heightAnchor.constraint(equalToConstant: 48).isActive = true
+        setAccessibilityRole(.group)
+        setAccessibilityLabel("Battery-side power")
         label.font = .systemFont(ofSize: 11, weight: .medium)
         label.textColor = .secondaryLabelColor
         valueLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .medium)
@@ -173,9 +207,7 @@ private final class MenuPowerView: NSView {
         ])
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { nil }
 }
 
 private final class MenuMetricRowView: NSView {
@@ -187,6 +219,10 @@ private final class MenuMetricRowView: NSView {
         set { valueLabel.stringValue = newValue }
     }
 
+    func setValueAccessibility(_ value: String) {
+        valueLabel.setAccessibilityValue(value)
+    }
+
     override var intrinsicContentSize: NSSize {
         NSSize(width: 280, height: 22)
     }
@@ -195,6 +231,8 @@ private final class MenuMetricRowView: NSView {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
         heightAnchor.constraint(equalToConstant: 22).isActive = true
+        setAccessibilityRole(.group)
+        setAccessibilityLabel(title)
         titleLabel.stringValue = title
         titleLabel.font = .systemFont(ofSize: 12, weight: .regular)
         titleLabel.textColor = .secondaryLabelColor
@@ -214,7 +252,28 @@ private final class MenuMetricRowView: NSView {
         ])
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    required init?(coder: NSCoder) { nil }
+}
+
+private final class MenuNoteView: NSView {
+    private let label: NSTextField
+
+    init(text: String) {
+        label = NSTextField(labelWithString: text)
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+        heightAnchor.constraint(equalToConstant: 28).isActive = true
+        label.font = .systemFont(ofSize: 10, weight: .regular)
+        label.textColor = .tertiaryLabelColor
+        label.lineBreakMode = .byTruncatingTail
+        addSubview(label)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            label.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
     }
+
+    required init?(coder: NSCoder) { nil }
 }

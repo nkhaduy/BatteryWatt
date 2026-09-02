@@ -3,14 +3,25 @@ import PackageDescription
 
 let package = Package(
     name: "BatteryWatt",
-    platforms: [.macOS(.v15)],
+    platforms: [.macOS(.v13)],
     products: [
         .executable(name: "BatteryWatt", targets: ["BatteryWatt"])
     ],
     targets: [
+        .target(
+            name: "BatteryWattCore",
+            path: "Sources/Core"
+        ),
         .executableTarget(
             name: "BatteryWatt",
-            path: "Sources"
+            dependencies: ["BatteryWattCore"],
+            path: "Sources/App",
+            linkerSettings: [.linkedLibrary("sqlite3")]
+        ),
+        .testTarget(
+            name: "BatteryWattCoreTests",
+            dependencies: ["BatteryWattCore"],
+            path: "Tests/BatteryWattCoreTests"
         )
     ]
 )
