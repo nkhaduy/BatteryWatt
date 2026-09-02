@@ -41,13 +41,9 @@ To uninstall, quit BatteryWatt and remove `BatteryWatt.app` from Applications. L
 
 ### Optional npm helper
 
-BatteryWatt is a native app, not an npm application. The repository includes a dependency-free npm helper for developers who prefer a CLI installer. It downloads only official GitHub Release assets, verifies `SHA256SUMS.txt`, and requires an explicit command:
+BatteryWatt is a native app, not an npm application. A dependency-free helper is prepared under [`npm/`](npm/) for developers who prefer a CLI installer. It downloads only official GitHub Release assets, verifies `SHA256SUMS.txt`, and requires an explicit `install` command.
 
-```sh
-npx batterywatt install
-```
-
-There is no `postinstall` script and `npm install` never installs or launches the app. The helper is intentionally secondary to Homebrew and the official DMG.
+The helper is not published to npm yet, so it is not presented as a live installation channel for this release. There is no `postinstall` script, and `npm install` never installs or launches the app. The helper is intentionally secondary to Homebrew and the official DMG.
 
 ## How it works
 
